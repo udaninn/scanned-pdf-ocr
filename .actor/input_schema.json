@@ -1,0 +1,115 @@
+{
+  "title": "Scanned PDF OCR input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "pdfUrls": {
+      "title": "PDF URLs",
+      "type": "array",
+      "description": "Direct links to the PDFs you want read. Scanned or photographed pages are the point here; if a PDF already has a text layer the Actor uses it directly instead of running OCR.",
+      "editor": "stringList",
+      "prefill": [
+        "https://www.irs.gov/pub/irs-pdf/fw4.pdf"
+      ]
+    },
+    "languages": {
+      "title": "Languages",
+      "type": "array",
+      "description": "Tesseract language codes, most likely first. Installed: eng, deu, fra, spa, ita, por, nld, kor, jpn, chi_sim.",
+      "editor": "stringList",
+      "default": [
+        "eng"
+      ],
+      "prefill": [
+        "eng"
+      ]
+    },
+    "outputMode": {
+      "title": "What to return",
+      "type": "string",
+      "description": "Tables only, page text only, or both.",
+      "editor": "select",
+      "default": "both",
+      "enum": [
+        "both",
+        "tables",
+        "text"
+      ],
+      "enumTitles": [
+        "Tables and page text",
+        "Tables only",
+        "Page text only"
+      ]
+    },
+    "dpi": {
+      "title": "Render resolution (DPI)",
+      "type": "integer",
+      "description": "Higher is more accurate and slower. 300 suits most scans; try 400 for small print, 200 for clean large type.",
+      "default": 300,
+      "minimum": 150,
+      "maximum": 600,
+      "unit": "dpi"
+    },
+    "minConfidence": {
+      "title": "Minimum word confidence",
+      "type": "integer",
+      "description": "0-100. Words OCR is less sure about than this are reported as unreadable rather than as text. Raise it for cleaner text, lower it if characters go missing.",
+      "default": 40,
+      "minimum": 0,
+      "maximum": 100,
+      "unit": "score"
+    },
+    "minRows": {
+      "title": "Minimum rows",
+      "type": "integer",
+      "description": "Ignore tables with fewer rows.",
+      "default": 2,
+      "minimum": 1,
+      "maximum": 100
+    },
+    "minColumns": {
+      "title": "Minimum columns",
+      "type": "integer",
+      "description": "Ignore tables with fewer columns. Keep this at 2 or more so paragraphs are not mistaken for tables.",
+      "default": 2,
+      "minimum": 2,
+      "maximum": 50
+    },
+    "maxPagesPerPdf": {
+      "title": "Max pages per PDF",
+      "type": "integer",
+      "description": "0 means every page. OCR is charged per page, so cap this if you only need the front of a long document.",
+      "default": 0,
+      "minimum": 0
+    },
+    "maxFileSizeMb": {
+      "title": "Max file size (MB)",
+      "type": "integer",
+      "description": "Larger PDFs are skipped with an explanatory record.",
+      "default": 50,
+      "minimum": 1,
+      "maximum": 500
+    },
+    "forceOcr": {
+      "title": "Always run OCR",
+      "type": "boolean",
+      "description": "Off by default: a PDF that already has a text layer is read directly, which is faster, free of OCR errors and cheaper for you. Turn this on if the existing text layer is itself bad.",
+      "default": false
+    },
+    "includeMarkdown": {
+      "title": "Include Markdown output",
+      "type": "boolean",
+      "description": "Adds a Markdown table to every table record.",
+      "default": true
+    },
+    "includeCsv": {
+      "title": "Include CSV output",
+      "type": "boolean",
+      "description": "Adds a CSV string to every table record.",
+      "default": true
+    }
+  },
+  "required": [
+    "pdfUrls"
+  ]
+}
