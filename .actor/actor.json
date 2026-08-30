@@ -1,0 +1,16 @@
+{
+  "actorSpecification": 1,
+  "name": "scanned-pdf-ocr",
+  "title": "Scanned PDF OCR to Text & Tables",
+  "description": "Read scanned PDFs with OCR and get both clean per-page text and real tables, with empty cells kept as null so columns stay aligned.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "meta": {
+    "templateId": "python-empty"
+  },
+  "dockerfile": "./Dockerfile",
+  "input": "./input_schema.json",
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  }
+}
