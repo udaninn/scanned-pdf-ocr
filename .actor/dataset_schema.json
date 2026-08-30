@@ -1,9 +1,119 @@
 {
   "actorSpecification": 1,
-  "fields": {},
+  "fields": {
+    "type": "object",
+    "properties": {
+      "recordType": {
+        "type": "string",
+        "enum": [
+          "table",
+          "pageText",
+          "notice",
+          "error",
+          "noResults"
+        ],
+        "description": "Which kind of record this is."
+      },
+      "sourceUrl": {
+        "type": "string",
+        "description": "The PDF this came from."
+      },
+      "fileName": {
+        "type": "string"
+      },
+      "pageNumber": {
+        "type": "integer"
+      },
+      "pageCount": {
+        "type": "integer"
+      },
+      "title": {
+        "type": "string",
+        "description": "Present on notice and error records."
+      },
+      "hint": {
+        "type": "string",
+        "description": "Plain-language explanation of what happened."
+      },
+      "header": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": "Header row of a table, or null."
+      },
+      "rows": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Table rows. Empty cells are null."
+      },
+      "rowCount": {
+        "type": "integer"
+      },
+      "columnCount": {
+        "type": "integer"
+      },
+      "emptyCellCount": {
+        "type": "integer",
+        "description": "Cells that were genuinely blank."
+      },
+      "unreadableCellCount": {
+        "type": "integer",
+        "description": "Cells holding marks the OCR could not read."
+      },
+      "unreadableCells": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "description": "Positions of unreadable cells as [row, column]."
+      },
+      "meanConfidence": {
+        "type": "number",
+        "description": "0-100 OCR confidence."
+      },
+      "extractionMode": {
+        "type": "string",
+        "enum": [
+          "ocr",
+          "text-layer"
+        ]
+      },
+      "markdown": {
+        "type": "string"
+      },
+      "csv": {
+        "type": "string"
+      },
+      "text": {
+        "type": "string",
+        "description": "Page text, on pageText records."
+      },
+      "wordCount": {
+        "type": "integer"
+      }
+    }
+  },
   "views": {
     "overview": {
-      "title": "OCR results",
+      "title": "Overview",
       "transformation": {
         "fields": [
           "recordType",
@@ -17,6 +127,71 @@
           "meanConfidence",
           "extractionMode",
           "hint"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "recordType": {
+            "label": "Record type",
+            "format": "text"
+          },
+          "fileName": {
+            "label": "File",
+            "format": "text"
+          },
+          "pageNumber": {
+            "label": "Page",
+            "format": "number"
+          },
+          "title": {
+            "label": "Title",
+            "format": "text"
+          },
+          "rowCount": {
+            "label": "Rows",
+            "format": "number"
+          },
+          "columnCount": {
+            "label": "Columns",
+            "format": "number"
+          },
+          "emptyCellCount": {
+            "label": "Empty cells",
+            "format": "number"
+          },
+          "unreadableCellCount": {
+            "label": "Unreadable cells",
+            "format": "number"
+          },
+          "meanConfidence": {
+            "label": "Confidence",
+            "format": "number"
+          },
+          "extractionMode": {
+            "label": "Mode",
+            "format": "text"
+          },
+          "hint": {
+            "label": "Note",
+            "format": "text"
+          }
+        }
+      }
+    },
+    "tables": {
+      "title": "Tables only",
+      "transformation": {
+        "fields": [
+          "fileName",
+          "pageNumber",
+          "header",
+          "rows",
+          "rowCount",
+          "columnCount",
+          "emptyCellCount",
+          "unreadableCells",
+          "meanConfidence"
         ]
       },
       "display": {
