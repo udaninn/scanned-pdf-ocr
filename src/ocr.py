@@ -208,15 +208,19 @@ def build_table(words: list[Word], min_rows: int, min_columns: int,
         if len(cells) < 2:
             continue  # a heading or a line of prose, not part of the table
         line: list[str | None] = [None] * len(columns)
+        blind: set[int] = set()
         for cell in cells:
             index = min(range(len(columns)),
                         key=lambda i: abs(cell["x"] - columns[i]))
             if not cell["readable"]:
-                unreadable.append((len(grid), index))
+                blind.add(index)      # a set: two smudges in one cell is one cell
                 continue
             line[index] = (cell["text"] if line[index] is None
                            else line[index] + " " + cell["text"])
             confidences.append(cell["conf"])
+        # A cell only counts as unreadable if nothing legible landed there too.
+        unreadable.extend((len(grid), i) for i in sorted(blind)
+                          if line[i] is None)
         grid.append(line)
 
     if len(grid) < min_rows:
@@ -224,7 +228,13 @@ def build_table(words: list[Word], min_rows: int, min_columns: int,
 
     filled = sum(1 for row in grid for cell in row if cell is not None)
     capacity = len(grid) * len(columns)
-    if capacity and (filled + len(unreadable)) / capacity < min_filled:
+    marked = filled + len(unreadable)
+    if capacity and marked / capacity < min_filled:
+        return None
+    # A grid where most of the ink defeated the OCR is not a table we can
+    # honestly hand over; it is a bad scan, and saying so is more use than
+    # a tidy-looking shell with the values missing.
+    if marked and filled / marked < 0.5:
         return None
 
     header = grid[0] if grid else None

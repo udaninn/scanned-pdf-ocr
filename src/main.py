@@ -174,7 +174,8 @@ async def _handle_pdf(url: str, opts: dict) -> int:
                     "rows": table.rows,
                     "rowCount": len(table.rows),
                     "columnCount": table.column_count,
-                    "emptyCellCount": table.empty_cells - len(table.unreadable),
+                    "emptyCellCount": max(
+                        0, table.empty_cells - len(table.unreadable)),
                     "unreadableCellCount": len(table.unreadable),
                     "unreadableCells": table.unreadable,
                     "meanConfidence": table.mean_confidence,
