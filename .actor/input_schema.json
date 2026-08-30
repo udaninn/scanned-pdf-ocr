@@ -75,6 +75,15 @@
       "minimum": 2,
       "maximum": 50
     },
+    "minFilledPercent": {
+      "title": "Minimum filled cells (%)",
+      "type": "integer",
+      "description": "A real table is mostly full. Grids emptier than this are treated as a false detection - usually a page of prose the column finder carved up - and are not returned. Lower it for sparse forms, raise it if prose is slipping through.",
+      "default": 35,
+      "minimum": 0,
+      "maximum": 100,
+      "unit": "%"
+    },
     "maxPagesPerPdf": {
       "title": "Max pages per PDF",
       "type": "integer",
