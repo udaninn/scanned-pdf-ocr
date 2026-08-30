@@ -140,7 +140,8 @@ async def _handle_pdf(url: str, opts: dict) -> int:
                               if sure else 0.0)
                 table = build_table(words, opts["min_rows"],
                                     opts["min_columns"],
-                                    opts["min_confidence"])
+                                    opts["min_confidence"],
+                                    opts["min_filled"])
             else:
                 mode = "text-layer"
                 page_text = existing[number - 1]
@@ -236,6 +237,10 @@ async def main() -> None:
                                          int(raw.get("minConfidence", 40) or 0))),
             "min_rows": max(1, int(raw.get("minRows", 2) or 2)),
             "min_columns": max(2, int(raw.get("minColumns", 2) or 2)),
+            "min_filled": max(0, min(100,
+                                     int(raw.get("minFilledPercent", 35)
+                                         if raw.get("minFilledPercent") is not None
+                                         else 35))) / 100,
             "max_pages": max(0, int(raw.get("maxPagesPerPdf", 0) or 0)),
             "max_bytes": max(1, int(raw.get("maxFileSizeMb", 50) or 50)) * 1024 * 1024,
             "force_ocr": bool(raw.get("forceOcr", False)),

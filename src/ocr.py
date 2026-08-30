@@ -164,8 +164,16 @@ def split_cells(row: list[Word], gap: float,
 
 
 def build_table(words: list[Word], min_rows: int, min_columns: int,
-                min_confidence: int) -> Table | None:
-    """Rebuild a grid from word boxes, keeping empty cells as None."""
+                min_confidence: int,
+                min_filled: float = 0.35) -> Table | None:
+    """Rebuild a grid from word boxes, keeping empty cells as None.
+
+    Returns None when the page has no table on it. That judgement is the hard
+    part: run the column finder over a page of prose and it will happily carve
+    the sentences into a dozen ragged columns and call it a table. A real table
+    is mostly full, so a grid that is mostly holes is thrown away rather than
+    handed over as though it meant something.
+    """
     rows = group_rows(words)
     if not rows:
         return None
@@ -212,6 +220,11 @@ def build_table(words: list[Word], min_rows: int, min_columns: int,
         grid.append(line)
 
     if len(grid) < min_rows:
+        return None
+
+    filled = sum(1 for row in grid for cell in row if cell is not None)
+    capacity = len(grid) * len(columns)
+    if capacity and (filled + len(unreadable)) / capacity < min_filled:
         return None
 
     header = grid[0] if grid else None
