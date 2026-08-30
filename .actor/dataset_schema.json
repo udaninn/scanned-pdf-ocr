@@ -1,0 +1,28 @@
+{
+  "actorSpecification": 1,
+  "fields": {},
+  "views": {
+    "overview": {
+      "title": "OCR results",
+      "transformation": {
+        "fields": [
+          "recordType",
+          "fileName",
+          "pageNumber",
+          "title",
+          "rowCount",
+          "columnCount",
+          "emptyCellCount",
+          "unreadableCellCount",
+          "meanConfidence",
+          "extractionMode",
+          "hint"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {}
+      }
+    }
+  }
+}
