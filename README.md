@@ -73,6 +73,15 @@ So low-confidence marks are never silently discarded here. The cell is still
 `null` in that row is genuinely blank. Raising `dpi` or lowering
 `minConfidence` usually recovers these.
 
+
+### Prose is not a table
+
+Run a column finder over a page of paragraphs and it will cheerfully carve the
+sentences into a dozen ragged columns. So a grid that comes out mostly empty is
+discarded rather than returned: below `minFilledPercent` filled cells, the page
+is reported as having no table instead of being handed a convincing-looking one
+that means nothing. Lower the threshold for genuinely sparse forms.
+
 ## What you get
 
 - **Per-page text** — everything OCR read, with a mean confidence score
@@ -107,6 +116,7 @@ So low-confidence marks are never silently discarded here. The cell is still
 | `dpi` | `300` | Higher is more accurate and slower. 400 for small print, 200 for clean large type. |
 | `minConfidence` | `40` | 0–100. Below this a word is treated as unreadable rather than as text. |
 | `minRows` / `minColumns` | `2` / `2` | Keep `minColumns` at 2+ so paragraphs are not mistaken for tables. |
+| `minFilledPercent` | `35` | A real table is mostly full. Grids emptier than this are discarded as false detections. |
 | `maxPagesPerPdf` | `0` | 0 processes every page. OCR is charged per page, so cap long documents. |
 | `maxFileSizeMb` | `50` | Larger files are skipped with an explanatory record. |
 | `forceOcr` | `false` | Run OCR even when a text layer exists. |
