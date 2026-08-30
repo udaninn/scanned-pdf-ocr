@@ -1,0 +1,13 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Scanned PDF OCR output",
+  "description": "Every record lands in the default dataset: one per page of OCR text, one per table rebuilt from it, plus plain-language notice, error and noResults records explaining anything that did not work.",
+  "properties": {
+    "results": {
+      "type": "string",
+      "title": "OCR results",
+      "description": "Page text and tables, with empty cells kept as null and unreadable cells listed separately.",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    }
+  }
+}
