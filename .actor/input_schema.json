@@ -87,8 +87,8 @@
     "maxPagesPerPdf": {
       "title": "Max pages per PDF",
       "type": "integer",
-      "description": "0 means every page. OCR is charged per page and takes roughly 20 seconds per page, so cap this while you are trying the Actor out or working through a long document.",
-      "default": 0,
+      "description": "How many pages to read per PDF. 0 means every page. OCR is charged per page and takes roughly 20 seconds per page, so this stops at 3 by default instead of running up a bill on a long document - and it tells you in the output whenever it had to stop early.",
+      "default": 3,
       "minimum": 0,
       "prefill": 3
     },
