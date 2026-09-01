@@ -256,7 +256,10 @@ async def main() -> None:
                                      int(raw.get("minFilledPercent", 35)
                                          if raw.get("minFilledPercent") is not None
                                          else 35))) / 100,
-            "max_pages": max(0, int(raw.get("maxPagesPerPdf", 0) or 0)),
+            # Absent means "use the cautious default", but an explicit 0 has
+            # to survive as "every page" - which `or` would quietly swallow.
+            "max_pages": (3 if raw.get("maxPagesPerPdf") is None
+                          else max(0, int(raw.get("maxPagesPerPdf")))),
             "max_bytes": max(1, int(raw.get("maxFileSizeMb", 50) or 50)) * 1024 * 1024,
             "force_ocr": bool(raw.get("forceOcr", False)),
             "markdown": bool(raw.get("includeMarkdown", True)),
