@@ -104,7 +104,8 @@ that means nothing. Lower the threshold for genuinely sparse forms.
   "dpi": 300,
   "minConfidence": 40,
   "minRows": 2,
-  "minColumns": 2
+  "minColumns": 2,
+  "maxPagesPerPdf": 3
 }
 ```
 
@@ -117,7 +118,7 @@ that means nothing. Lower the threshold for genuinely sparse forms.
 | `minConfidence` | `40` | 0–100. Below this a word is treated as unreadable rather than as text. |
 | `minRows` / `minColumns` | `2` / `2` | Keep `minColumns` at 2+ so paragraphs are not mistaken for tables. |
 | `minFilledPercent` | `35` | A real table is mostly full. Grids emptier than this are discarded as false detections. |
-| `maxPagesPerPdf` | `0` | 0 processes every page. OCR is charged per page, so cap long documents. |
+| `maxPagesPerPdf` | `3` | 0 reads every page. OCR is charged per page, so this stops at 3 by default rather than running up a bill on a long document - and it says so in the output whenever it had to stop early. |
 | `maxFileSizeMb` | `50` | Larger files are skipped with an explanatory record. |
 | `forceOcr` | `false` | Run OCR even when a text layer exists. |
 | `includeMarkdown` / `includeCsv` | `true` | Extra formats on each table record. |
@@ -167,6 +168,14 @@ the API.
 - Cells merged across rows are reported in the first row they occupy.
 - Password-protected files are skipped with an `error` record.
 - Photographs of pages taken at an angle read poorly; scan flat where you can.
+
+## Running long documents
+
+OCR is memory-hungry: a 300 DPI page is tens of megabytes before Tesseract even
+looks at it. This Actor is set to 2 GB, which reads a page in roughly fifteen
+seconds. At 1 GB the same page takes minutes, because the container spends its
+time swapping rather than reading - so if you fork this Actor, keep the memory
+up rather than turning the DPI down.
 
 ## Support
 
