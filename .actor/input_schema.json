@@ -6,10 +6,10 @@
     "pdfUrls": {
       "title": "PDF URLs",
       "type": "array",
-      "description": "Direct links to the PDFs you want read. Scanned or photographed pages are the point here; if a PDF already has a text layer the Actor uses it directly instead of running OCR.",
+      "description": "Direct links to the PDFs you want read. Scanned or photographed pages are the point here; if a PDF already has a text layer the Actor reads it directly instead of running OCR. The example is a scanned 1960s government memo, so the first run shows real OCR.",
       "editor": "stringList",
       "prefill": [
-        "https://www.irs.gov/pub/irs-pdf/fw4.pdf"
+        "https://www.archives.gov/files/research/jfk/releases/docid-32204484.pdf"
       ]
     },
     "languages": {
@@ -87,9 +87,10 @@
     "maxPagesPerPdf": {
       "title": "Max pages per PDF",
       "type": "integer",
-      "description": "0 means every page. OCR is charged per page, so cap this if you only need the front of a long document.",
+      "description": "0 means every page. OCR is charged per page and takes roughly 20 seconds per page, so cap this while you are trying the Actor out or working through a long document.",
       "default": 0,
-      "minimum": 0
+      "minimum": 0,
+      "prefill": 3
     },
     "maxFileSizeMb": {
       "title": "Max file size (MB)",
