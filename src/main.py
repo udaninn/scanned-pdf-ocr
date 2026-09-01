@@ -115,7 +115,8 @@ async def _handle_pdf(url: str, opts: dict) -> int:
         use_ocr = opts["force_ocr"] or not has_text
 
         limit = opts["max_pages"] or page_count
-        pages = range(1, min(page_count, limit) + 1)
+        last = min(page_count, limit)
+        pages = range(1, last + 1)
 
         for number in pages:
             if use_ocr:
@@ -196,6 +197,19 @@ async def _handle_pdf(url: str, opts: dict) -> int:
                     record["csv"] = to_csv(table)
                 await Actor.push_data(record)
                 pushed += 1
+
+        if last < page_count:
+            # Stopping early is a kindness on a per-page price, but a silent
+            # truncation is how someone ends up quoting half a document.
+            await _emit_note(
+                "notice", url, name,
+                "Only the first %d of %d pages were read" % (last, page_count),
+                "'maxPagesPerPdf' is set to %d. OCR is charged per page, so "
+                "this Actor stops early by default rather than running up a "
+                "bill on a long document. Set 'maxPagesPerPdf' to 0 to read "
+                "every page." % opts["max_pages"],
+            )
+            pushed += 1
 
         if opts["want_tables"] and not use_ocr and has_text:
             await _emit_note(
