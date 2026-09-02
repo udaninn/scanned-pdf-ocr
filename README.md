@@ -82,6 +82,25 @@ discarded rather than returned: below `minFilledPercent` filled cells, the page
 is reported as having no table instead of being handed a convincing-looking one
 that means nothing. Lower the threshold for genuinely sparse forms.
 
+## Tables that run over a page break
+
+Financial statements and long reports split tables across pages constantly. A
+reader has no trouble with it - the columns are in the same places and the rows
+simply carry on - but two separate records are two things to reconcile by hand.
+
+So a table whose columns line up with the one on the page before is joined onto
+it, and the record carries a `pageSpan` saying where it came from:
+
+```json
+{ "pageNumber": 4, "pageSpan": [4, 5, 6], "rowCount": 71 }
+```
+
+A continuation page usually has no header of its own, so its first line is
+treated as data. When the document repeats the header on every page instead,
+the repeat is dropped rather than landing in the middle of your rows.
+
+Set `joinAcrossPages` to false to keep one record per page.
+
 ## What you get
 
 - **Per-page text** — everything OCR read, with a mean confidence score
@@ -116,6 +135,7 @@ that means nothing. Lower the threshold for genuinely sparse forms.
 | `outputMode` | `both` | `both`, `tables` or `text`. |
 | `dpi` | `300` | Higher is more accurate and slower. 400 for small print, 200 for clean large type. |
 | `minConfidence` | `40` | 0–100. Below this a word is treated as unreadable rather than as text. |
+| `joinAcrossPages` | `true` | Rejoin a table that a page break cut in half, and drop a header the document repeats on every page. |
 | `minRows` / `minColumns` | `2` / `2` | Keep `minColumns` at 2+ so paragraphs are not mistaken for tables. |
 | `minFilledPercent` | `35` | A real table is mostly full. Grids emptier than this are discarded as false detections. |
 | `maxPagesPerPdf` | `3` | 0 reads every page. OCR is charged per page, so this stops at 3 by default rather than running up a bill on a long document - and it says so in the output whenever it had to stop early. |
@@ -166,6 +186,9 @@ the API.
   `unreadableCells` to decide how far to trust a result.
 - Rotated and vertically-written tables are not supported yet.
 - Cells merged across rows are reported in the first row they occupy.
+- Joining is by column geometry, so two unrelated tables that happen to share a
+  column layout on consecutive pages will be joined. Check `pageSpan` if that
+  matters, or turn joining off.
 - Password-protected files are skipped with an `error` record.
 - Photographs of pages taken at an angle read poorly; scan flat where you can.
 
