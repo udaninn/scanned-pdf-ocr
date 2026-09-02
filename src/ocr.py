@@ -57,6 +57,9 @@ class Table:
     rows: list[list[str | None]] = field(default_factory=list)
     mean_confidence: float = 0.0
     unreadable: list[list[int]] = field(default_factory=list)
+    columns: list[float] = field(default_factory=list)
+    unit: float = 0.0
+    pages: list[int] = field(default_factory=list)
 
     @property
     def column_count(self) -> int:
@@ -248,6 +251,8 @@ def build_table(words: list[Word], min_rows: int, min_columns: int,
         mean_confidence=round(
             sum(confidences) / len(confidences), 1) if confidences else 0.0,
         unreadable=[[r - offset, c] for r, c in unreadable if r - offset >= 0],
+        columns=list(columns),
+        unit=height,
     )
 
 
@@ -277,3 +282,64 @@ def to_csv(table: Table) -> str:
     for row in table.rows:
         writer.writerow(["" if c is None else c for c in row])
     return buffer.getvalue().strip()
+
+
+def _same_shape(a: Table, b: Table) -> bool:
+    """Do two tables look like one table that a page break cut in half?"""
+    if a.column_count != b.column_count or not a.columns or not b.columns:
+        return False
+    if len(a.columns) != len(b.columns):
+        return False
+    tolerance = max(a.unit, b.unit) * 2.0
+    return all(abs(x - y) <= tolerance for x, y in zip(a.columns, b.columns))
+
+
+def _looks_like(a: list[str | None] | None, b: list[str | None] | None) -> bool:
+    """Same header, allowing for OCR wobble in case and spacing."""
+    if a is None or b is None or len(a) != len(b):
+        return False
+    def norm(cell: str | None) -> str:
+        return "" if cell is None else " ".join(cell.split()).lower()
+    return [norm(c) for c in a] == [norm(c) for c in b]
+
+
+def join_across_pages(pages: list[tuple[int, Table]]) -> list[Table]:
+    """Stitch a table back together when it runs over a page break.
+
+    Financial statements and long reports do this constantly, and a reader has
+    no trouble with it: the columns are in the same places and the rows simply
+    carry on. Two separate tables in the output, on the other hand, are two
+    separate things to reconcile by hand.
+
+    A continuation page usually has no header of its own, so whatever
+    build_table took for a header is really the first data row - unless the
+    document repeats the header on every page, in which case it is a duplicate
+    and should go.
+    """
+    merged: list[Table] = []
+    for number, table in pages:
+        table.pages = table.pages or [number]
+        previous = merged[-1] if merged else None
+        contiguous = (
+            previous is not None
+            and previous.pages[-1] == number - 1
+            and _same_shape(previous, table)
+        )
+        if not contiguous:
+            merged.append(table)
+            continue
+
+        offset = len(previous.rows)
+        if _looks_like(previous.header, table.header):
+            pass                      # repeated header: drop it
+        elif table.header is not None:
+            previous.rows.append(table.header)
+            offset += 1
+        previous.rows.extend(table.rows)
+        previous.unreadable.extend([r + offset, c] for r, c in table.unreadable)
+        previous.pages.append(number)
+        if table.mean_confidence:
+            scores = [s for s in (previous.mean_confidence,
+                                  table.mean_confidence) if s]
+            previous.mean_confidence = round(sum(scores) / len(scores), 1)
+    return merged

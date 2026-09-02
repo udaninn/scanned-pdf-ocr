@@ -18,6 +18,7 @@ from apify import Actor
 from .ocr import (
     ToolMissing,
     build_table,
+    join_across_pages,
     read_words,
     render_page,
     require_tools,
@@ -82,6 +83,8 @@ async def _handle_pdf(url: str, opts: dict) -> int:
     """Process one PDF. Returns the number of records pushed."""
     name = url.rsplit("/", 1)[-1] or "document.pdf"
     pushed = 0
+    found: list[tuple[int, object]] = []
+    mode = "ocr"
 
     with tempfile.TemporaryDirectory() as work:
         pdf_path = os.path.join(work, "input.pdf")
@@ -165,38 +168,58 @@ async def _handle_pdf(url: str, opts: dict) -> int:
                 pushed += 1
 
             if opts["want_tables"] and table is not None:
-                record = {
-                    "recordType": "table",
-                    "sourceUrl": url,
-                    "fileName": name,
-                    "pageNumber": number,
-                    "pageCount": page_count,
-                    "header": table.header,
-                    "rows": table.rows,
-                    "rowCount": len(table.rows),
-                    "columnCount": table.column_count,
-                    "emptyCellCount": max(
-                        0, table.empty_cells - len(table.unreadable)),
-                    "unreadableCellCount": len(table.unreadable),
-                    "unreadableCells": table.unreadable,
-                    "meanConfidence": table.mean_confidence,
-                    "extractionMode": mode,
-                }
-                if table.unreadable:
-                    record["hint"] = (
-                        "%d cell(s) contained marks OCR could not read. They "
-                        "are null like empty cells, but listed in "
-                        "'unreadableCells' as [row, column] so you can tell "
-                        "the two apart. Raising the DPI or lowering "
-                        "'minConfidence' often recovers them."
-                        % len(table.unreadable)
-                    )
-                if opts["markdown"]:
-                    record["markdown"] = to_markdown(table)
-                if opts["csv"]:
-                    record["csv"] = to_csv(table)
-                await Actor.push_data(record)
-                pushed += 1
+                found.append((number, table))
+
+        if opts["join_pages"]:
+            tables = join_across_pages(found)
+        else:
+            for number_, table_ in found:
+                table_.pages = [number_]
+            tables = [t for _, t in found]
+        for table in tables:
+            span = table.pages or []
+            record = {
+                "recordType": "table",
+                "sourceUrl": url,
+                "fileName": name,
+                "pageNumber": span[0] if span else None,
+                "pageCount": page_count,
+                "pageSpan": span,
+                "header": table.header,
+                "rows": table.rows,
+                "rowCount": len(table.rows),
+                "columnCount": table.column_count,
+                "emptyCellCount": max(
+                    0, table.empty_cells - len(table.unreadable)),
+                "unreadableCellCount": len(table.unreadable),
+                "unreadableCells": table.unreadable,
+                "meanConfidence": table.mean_confidence,
+                "extractionMode": mode,
+            }
+            notes = []
+            if len(span) > 1:
+                notes.append(
+                    "This table ran across pages %s and has been joined back "
+                    "into one. Set 'joinAcrossPages' to false to keep the "
+                    "pages separate."
+                    % ", ".join(str(p) for p in span)
+                )
+            if table.unreadable:
+                notes.append(
+                    "%d cell(s) contained marks OCR could not read. They are "
+                    "null like empty cells, but listed in 'unreadableCells' "
+                    "as [row, column] so you can tell the two apart. Raising "
+                    "the DPI or lowering 'minConfidence' often recovers them."
+                    % len(table.unreadable)
+                )
+            if notes:
+                record["hint"] = " ".join(notes)
+            if opts["markdown"]:
+                record["markdown"] = to_markdown(table)
+            if opts["csv"]:
+                record["csv"] = to_csv(table)
+            await Actor.push_data(record)
+            pushed += 1
 
         if last < page_count:
             # Stopping early is a kindness on a per-page price, but a silent
@@ -262,6 +285,7 @@ async def main() -> None:
                           else max(0, int(raw.get("maxPagesPerPdf")))),
             "max_bytes": max(1, int(raw.get("maxFileSizeMb", 50) or 50)) * 1024 * 1024,
             "force_ocr": bool(raw.get("forceOcr", False)),
+            "join_pages": bool(raw.get("joinAcrossPages", True)),
             "markdown": bool(raw.get("includeMarkdown", True)),
             "csv": bool(raw.get("includeCsv", True)),
             "want_text": mode in ("both", "text"),
