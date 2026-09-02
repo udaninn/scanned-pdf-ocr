@@ -84,6 +84,12 @@
       "maximum": 100,
       "unit": "%"
     },
+    "joinAcrossPages": {
+      "title": "Join tables across page breaks",
+      "type": "boolean",
+      "description": "A table that runs over a page break comes back as one table, with a header the document repeats on every page removed. The record's 'pageSpan' lists the pages it came from. Turn this off to keep one record per page.",
+      "default": true
+    },
     "maxPagesPerPdf": {
       "title": "Max pages per PDF",
       "type": "integer",

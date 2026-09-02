@@ -8,6 +8,7 @@
           "recordType",
           "fileName",
           "pageNumber",
+          "pageSpan",
           "title",
           "rowCount",
           "columnCount",
@@ -73,6 +74,9 @@
           },
           "hint": {
             "label": "Note"
+          },
+          "pageSpan": {
+            "label": "Pages"
           }
         }
       }
